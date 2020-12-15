@@ -1,0 +1,4 @@
+C:\Users\User\source\repos\AlgoProj\MST_EX1\MST_EX1\obj\Debug\netcoreapp3.1\MST_EX1.csprojAssemblyReference.cache
+C:\Users\User\source\repos\AlgoProj\MST_EX1\MST_EX1\obj\Debug\netcoreapp3.1\MST_EX1.AssemblyInfoInputs.cache
+C:\Users\User\source\repos\AlgoProj\MST_EX1\MST_EX1\obj\Debug\netcoreapp3.1\MST_EX1.AssemblyInfo.cs
+C:\Users\User\source\repos\AlgoProj\MST_EX1\MST_EX1\obj\Debug\netcoreapp3.1\MST_EX1.csproj.CoreCompileInputs.cache
