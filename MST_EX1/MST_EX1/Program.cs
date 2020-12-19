@@ -231,8 +231,8 @@ namespace MST_EX1
                 int from = -1, to = -1;
                 do
                 {
-                    from = (new Random()).Next(numOfEdges);
-                    to = (new Random()).Next(numOfEdges);
+                    from = (new Random()).Next(numOfNodes);
+                    to = (new Random()).Next(numOfNodes);
                 } while (from != to && g.edgeExist(from, to));
                 g.addEdge(from, to);
             }
