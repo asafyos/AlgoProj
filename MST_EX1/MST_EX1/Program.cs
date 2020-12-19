@@ -79,7 +79,7 @@ namespace MST_EX1
 
         public override string ToString()
         {
-            return "from: " + from.key + " to: " + to.key + " value: " + weight;
+            return "from: " + from.key + " to: " + to.key + " weight: " + weight;
         }
     }
 
