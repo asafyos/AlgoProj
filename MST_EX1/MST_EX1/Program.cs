@@ -11,7 +11,7 @@ namespace MST_EX1
         public int d;
 
         public LinkedList<Node> adjacents;
-        public Node pie;
+        public Node pi;
 
         public Node(int key)
         {
@@ -85,6 +85,7 @@ namespace MST_EX1
     class Graph
     {
         public ArrayList nodes;
+        public Dictionary<Edge, int> edges = new Dictionary<Edge, int>();
 
         public Graph()
         {
@@ -94,11 +95,51 @@ namespace MST_EX1
         public Graph(Graph other)
         {
             this.nodes = other.nodes;
+            this.edges = other.edges;
         }
 
         public void addNode(int key)
         {
             nodes.Add(new Node(key));
+        }
+
+        public void addEdge(int from, int to)
+        {
+            Node _from = (Node)nodes[from];
+            Node _to = (Node)nodes[to];
+
+            _from.adjacents.AddLast(_to);
+            Edge edge = new Edge(_from, _to);
+            edges.Add(edge, edge.weight);
+        }
+
+        public bool edgeExist(int from, int to)
+        {
+            Node _from = (Node)nodes[from];
+            Node _to = (Node)nodes[to];
+
+            return edges.ContainsKey(new Edge(_from, _to));
+        }
+
+        public int edgeWeight(int from, int to)
+        {
+            Node _from = (Node)nodes[from];
+            Node _to = (Node)nodes[to];
+
+            int weight;
+            if (edges.TryGetValue(new Edge(_from, _to), out weight))
+                return weight;
+            return int.MinValue;
+
+        }
+
+        public int edgeWeight(Node from, Node to)
+        {
+            int weight;
+            if (edges.TryGetValue(new Edge(from, to), out weight))
+                return weight;
+            return int.MinValue;
+
         }
 
         public virtual void print()
@@ -112,20 +153,20 @@ namespace MST_EX1
 
     class MST : Graph
     {
-        ArrayList edges = new ArrayList();
+        ArrayList mstEdges = new ArrayList();
 
         public MST(Graph G) : base(G)
         {
             foreach (Node node in nodes)
             {
-                if (node.pie != null)
-                    edges.Add(new Edge(node.pie, node));
+                if (node.pi != null)
+                    mstEdges.Add(new Edge(node.pi, node));
             }
         }
 
         public override void print()
         {
-            foreach (Edge edge in edges)
+            foreach (Edge edge in mstEdges)
             {
                 Console.WriteLine(edge.ToString());
             }
@@ -134,42 +175,31 @@ namespace MST_EX1
 
     class Program
     {
-        static Dictionary<Edge, int> edges = new Dictionary<Edge, int>();
 
-        static int weight(Node from, Node to)
-        {
-            Edge edge = new Edge(from, to);
-            if (edges.ContainsKey(edge))
-            {
-                return edges[edge];
-            }
-            return int.MinValue;
-        }
-
-        static MST Prim(Graph G, Func<Node, Node, int> W)
+        static MST Prim(Graph G)
         {
             SortedList<Node, Node> nodes = new SortedList<Node, Node>(); //  (G.nodes);
 
             foreach (Node node in G.nodes)
             {
                 node.d = int.MaxValue;
-                //node.pie = null;
+                //node.pi = null;
 
             }
 
-
-            G.nodes.First.Value.d = 0;
-            G.nodes.First.Value.pie = null;
+            nodes.Values[0].d = 0;
+            nodes.Values[0].pi = null;
 
             while (nodes.Count > 0)
             {
-                Node u = nodes.Pop();
+                Node u = nodes.Values[0];
+                nodes.RemoveAt(0);
                 foreach (Node v in u.adjacents)
                 {
-                    int w = W(u, v);
-                    if (nodes.Contains(v) && w < v.d)
+                    int w = G.edgeWeight(u, v);
+                    if (nodes.ContainsKey(v) && w < v.d)
                     {
-                        v.pie = u;
+                        v.pi = u;
                         v.d = w;
                     }
                 }
@@ -186,34 +216,47 @@ namespace MST_EX1
 
         static void Main(string[] args)
         {
+            const int numOfNodes = 20;
+            const int numOfEdges = 50;
             Graph g = new Graph();
 
             //Create Graph
-            for (int i = 1; i <= 20; i++)
+            for (int i = 0; i < numOfNodes; i++)
             {
                 g.addNode(i);
             }
 
-            g.print();
-
-            MST tree = Prim(g, weight);
-            tree.print();
-
-            // Insert new edge
-            Edge e = new Edge();
-
-            g.print();
-
-            reevaluate(tree, e);
-            tree.print();
-
-            // Insert new edge
-            e = new Edge();
+            for (int i = 0; i < numOfEdges; i++)
+            {
+                int from = -1, to = -1;
+                do
+                {
+                    from = (new Random()).Next(numOfEdges);
+                    to = (new Random()).Next(numOfEdges);
+                } while (from != to && g.edgeExist(from, to));
+                g.addEdge(from, to);
+            }
 
             g.print();
 
-            reevaluate(tree, e);
+            MST tree = Prim(g);
             tree.print();
+
+            //// Insert new edge
+            //Edge e = new Edge();
+
+            //g.print();
+
+            //reevaluate(tree, e);
+            //tree.print();
+
+            //// Insert new edge
+            //e = new Edge();
+
+            //g.print();
+
+            //reevaluate(tree, e);
+            //tree.print();
 
 
         }
