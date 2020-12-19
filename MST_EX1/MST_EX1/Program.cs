@@ -64,7 +64,7 @@ namespace MST_EX1
             this.from = from;
             this.to = to;
             Random rndNum = new Random();
-            weight = rndNum.Next(int.MaxValue / 4);
+            weight = rndNum.Next(100);
         }
 
         public override bool Equals(object obj)
@@ -145,9 +145,13 @@ namespace MST_EX1
 
         public virtual void print()
         {
-            foreach(object node in nodes)
+            //foreach(object node in nodes)
+            //{
+            //    Console.WriteLine(node.ToString());
+            //}
+            foreach (Edge edge in edges.Keys)
             {
-                Console.WriteLine(node.ToString());
+                Console.WriteLine(edge);
             }
         }
     }
@@ -235,7 +239,7 @@ namespace MST_EX1
                     do
                     {
                         to = (new Random()).Next(numOfNodes);
-                    } while (i != to && g.edgeExist(i, to));
+                    } while (i == to || g.edgeExist(i, to));
                     g.addEdge(i, to);
                 }
             }
@@ -246,7 +250,7 @@ namespace MST_EX1
                 {
                     from = (new Random()).Next(numOfNodes);
                     to = (new Random()).Next(numOfNodes);
-                } while (from != to && g.edgeExist(from, to));
+                } while (from == to || g.edgeExist(from, to));
                 g.addEdge(from, to);
             }
 
