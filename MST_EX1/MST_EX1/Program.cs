@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MST_EX1
 {
-    public class Integer
+    class Integer
     {
         public int Value { get; set; }
 
@@ -25,6 +25,151 @@ namespace MST_EX1
         {
             return string.Format("{0}", Value);
         }
+    }
+
+    class MinHeap<T> where T : IComparable<T>
+    {
+        const int MIN_CAPACITY = 7;
+        T[] data;
+
+        public int Count { get; private set; }
+
+        public int Capacity { get { return data.Length; } }
+
+        public MinHeap()
+        {
+            data = new T[MIN_CAPACITY];
+            Count = 0;
+        }
+
+        public MinHeap(T[] nodes)
+        {
+            int length = nodes.Length, count = 0;
+            while (length > 0)
+            {
+                count++;
+                length /= 2;
+            }
+            data = new T[Math.Max(MIN_CAPACITY, ((int)Math.Pow(2, count + 1) - 1))];
+            Count = nodes.Length;
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                data[i] = nodes[i];
+            }
+            Heapify();
+        }
+
+        private void extand()
+        {
+            if (Count == Capacity)
+            {
+                T[] newData = new T[((1 + Capacity) * 2) - 1];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    newData[i] = data[i];
+                }
+                data = newData;
+            }
+        }
+        private void collapse()
+        {
+            if (Capacity > MIN_CAPACITY && Count < (((1 + Capacity) / 2) - 1))
+            {
+                T[] newData = new T[((1 + Capacity) / 2) - 1];
+                for (int i = 0; i < newData.Length; i++)
+                {
+                    newData[i] = data[i];
+                }
+                data = newData;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index">index in one-base</param>
+        private void shiftDown(int index)
+        {
+            if (index > Count / 2)
+                return;
+            int left = index * 2, right = (index * 2) + 1;
+            if (data[index - 1].CompareTo(data[left - 1]) > 0 || (right < Count && data[index - 1].CompareTo(data[right - 1]) > 0))
+            {
+                int idx;
+                if (right >= Count || data[left - 1].CompareTo(data[right - 1]) < 0)
+                    idx = left;
+                else
+                    idx = right;
+
+                T temp = data[idx - 1];
+                data[idx - 1] = data[index - 1];
+                data[index - 1] = temp;
+                shiftDown(idx);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index">index in one-base</param>
+        private void shiftUp(int index)
+        {
+            if (index <= 0)
+                return;
+            int father = index / 2;
+            if (data[index - 1].CompareTo(data[father - 1]) > 0)
+            {
+                T temp = data[father - 1];
+                data[father - 1] = data[index - 1];
+                data[index - 1] = temp;
+                shiftUp(father);
+            }
+        }
+
+        public void Insert(T newNode)
+        {
+            data[Count] = newNode;
+            shiftUp(Count);
+            Count++;
+            extand();
+        }
+
+        public T getMin()
+        {
+            T min = data[0];
+
+            data[0] = data[Count - 1];
+            data[Count - 1] = default(T);
+            Count--;
+            shiftDown(1);
+
+            return min;
+        }
+
+        public T peek()
+        {
+            return data[0];
+        }
+
+        public void Heapify()
+        {
+            if (Count > 1)
+                for (int i = Count / 2; i < 1; i--)
+                {
+                    shiftDown(i);
+                }
+        }
+
+        public bool Contains(T node)
+        {
+            foreach (T t in data)
+            {
+                if (t != null && t.Equals(node))
+                    return true;
+            }
+            return false;
+        }
+
     }
 
     class Node : IComparable<Node>
@@ -108,7 +253,8 @@ namespace MST_EX1
 
         public override string ToString()
         {
-            return "from: " + (from.key + 1) + " to: " + (to.key + 1) + " weight: " + weight;
+            return string.Format("from: {0,2} to: {1,2}, weight {2}", (from.key + 1), (to.key + 1), weight);
+            //return "from: " + (from.key + 1) + " to: " + (to.key + 1) + " weight: " + weight;
         }
     }
 
@@ -209,6 +355,13 @@ namespace MST_EX1
 
         public override void print()
         {
+            Console.WriteLine("Nodes:");
+            foreach( Node node in nodes)
+            {
+                //Console.WriteLine("node: " + node.key + " d: " + node.d + " pi: " + (node.pi != null ? node.pi.key : -1));
+                Console.WriteLine("node: {0,2} => d: {1,4}, pi: {2}", (node.key + 1), node.d, (node.pi != null ? node.pi.key : -1));
+            }
+            Console.WriteLine("\nEdges:");
             foreach (Edge edge in mstEdges)
             {
                 Console.WriteLine(edge.ToString());
@@ -221,31 +374,38 @@ namespace MST_EX1
 
         static MST Prim(Graph G)
         {
-            SortedList<Node, Node> nodes = new SortedList<Node, Node>(); //  (G.nodes);
+            //SortedList<Node, Node> nodes = new SortedList<Node, Node>(); //  (G.nodes);
 
             foreach (Node node in G.nodes)
             {
                 node.d = int.MaxValue;
-                //node.pi = null;
-                nodes.Add(node, node);
+                node.pi = null;
+                //nodes.Add(node, node);
             }
 
-            nodes.Values[0].d = 0;
-            nodes.Values[0].pi = null;
+            MinHeap<Node> newNodes = new MinHeap<Node>((Node[])G.nodes.ToArray(typeof(Node)));
 
-            while (nodes.Count > 0)
+            //nodes.Values[0].d = 0;
+            //nodes.Values[0].pi = null;
+            newNodes.peek().d = 0;
+
+            //while (nodes.Count > 0)
+            while (newNodes.Count > 0)
             {
-                Node u = nodes.Values[0];
-                nodes.RemoveAt(0);
+                //Node u = nodes.Values[0];
+                //nodes.RemoveAt(0);
+                Node u = newNodes.getMin();
                 foreach (Node v in u.adjacents)
                 {
                     int w = G.edgeWeight(u, v);
-                    if (nodes.ContainsKey(v) && w < v.d)
+                    //if (nodes.ContainsKey(v) && w < v.d)
+                    if (newNodes.Contains(v) && w < v.d)
                     {
                         v.pi = u;
                         v.d = w;
                     }
                 }
+                newNodes.Heapify();
             }
 
             MST tree = new MST(G);
@@ -277,15 +437,15 @@ namespace MST_EX1
             g.addEdge(1, 5, 38);
             g.addEdge(1, 6, 20);
             g.addEdge(2, 3, 3);
-            g.addEdge(2, 4, 50); 
+            g.addEdge(2, 4, 50);
             g.addEdge(2, 6, 21);// 10
-            g.addEdge(2, 7, 22); 
+            g.addEdge(2, 7, 22);
             g.addEdge(2, 8, 19);
             g.addEdge(3, 4, 5);
             g.addEdge(3, 8, 18);
             g.addEdge(3, 9, 8);
             g.addEdge(3, 10, 13);
-            g.addEdge(4, 10, 8);
+            g.addEdge(4, 10, 7);
             g.addEdge(5, 6, 39);
             g.addEdge(5, 11, 41);
             g.addEdge(6, 7, 30); // 20
