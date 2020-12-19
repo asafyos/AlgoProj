@@ -16,11 +16,12 @@ namespace MST_EX1
         public Node(int key)
         {
             this.key = key;
+            this.adjacents = new LinkedList<Node>();
         }
 
         public int CompareTo(Node other)
         {
-            return d.CompareTo(other.d);
+            return (d - key).CompareTo(other.d - other.key);
         }
 
         public override bool Equals(object obj)
@@ -78,7 +79,7 @@ namespace MST_EX1
 
         public override string ToString()
         {
-            return from.key + " -> " + to.key;
+            return "from: " + from.key + " to: " + to.key + " value: " + weight;
         }
     }
 
@@ -184,7 +185,7 @@ namespace MST_EX1
             {
                 node.d = int.MaxValue;
                 //node.pi = null;
-
+                nodes.Add(node, node);
             }
 
             nodes.Values[0].d = 0;
@@ -226,7 +227,19 @@ namespace MST_EX1
                 g.addNode(i);
             }
 
-            for (int i = 0; i < numOfEdges; i++)
+            for (int i = 0; i < numOfNodes; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    int to = -1;
+                    do
+                    {
+                        to = (new Random()).Next(numOfNodes);
+                    } while (i != to && g.edgeExist(i, to));
+                    g.addEdge(i, to);
+                }
+            }
+            for (int i = 40; i < numOfEdges; i++)
             {
                 int from = -1, to = -1;
                 do
@@ -237,8 +250,10 @@ namespace MST_EX1
                 g.addEdge(from, to);
             }
 
+            Console.WriteLine("Graph:");
             g.print();
 
+            Console.WriteLine("\nTree:");
             MST tree = Prim(g);
             tree.print();
 

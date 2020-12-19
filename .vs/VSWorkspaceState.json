@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\MST_EX1"
+    "\\MST_EX1",
+    "\\MST_EX1\\MST_EX1"
   ],
-  "SelectedNode": "\\MST_EX1\\MST_EX1.sln",
+  "SelectedNode": "\\MST_EX1\\MST_EX1\\MST_EX1.csproj",
   "PreviewInSolutionExplorer": false
 }
