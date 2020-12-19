@@ -5,6 +5,28 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MST_EX1
 {
+    public class Integer
+    {
+        public int Value { get; set; }
+
+
+        public Integer() { }
+        public Integer(int value) { Value = value; }
+
+
+        // Custom cast from "int":
+        public static implicit operator Integer(Int32 x) { return new Integer(x); }
+
+        // Custom cast to "int":
+        public static implicit operator Int32(Integer x) { return x.Value; }
+
+
+        public override string ToString()
+        {
+            return string.Format("{0}", Value);
+        }
+    }
+
     class Node : IComparable<Node>
     {
         public int key;
@@ -93,17 +115,25 @@ namespace MST_EX1
     class Graph
     {
         public ArrayList nodes;
-        public Dictionary<Edge, int> edges = new Dictionary<Edge, int>();
+        //public Dictionary<Edge, int> edges = new Dictionary<Edge, int>();
+        public Integer[,] newEdges = new Integer[20, 20];
 
         public Graph()
         {
             nodes = new ArrayList();
+            for (int i = 0; i < newEdges.GetLength(0); i++)
+            {
+                for (int j = 0; j < newEdges.GetLength(1); j++)
+                {
+                    newEdges[i, j] = null;
+                }
+            }
         }
 
         public Graph(Graph other)
         {
             this.nodes = other.nodes;
-            this.edges = other.edges;
+            this.newEdges = other.newEdges;
         }
 
         public void addNode(int key)
@@ -111,18 +141,6 @@ namespace MST_EX1
             nodes.Add(new Node(key));
         }
 
-        public void addEdge(int from, int to)
-        {
-            Node _from = (Node)nodes[from];
-            Node _to = (Node)nodes[to];
-
-            _from.adjacents.AddLast(_to);
-            _to.adjacents.AddLast(_from);
-            Edge edge = new Edge(_from, _to);
-            edges.Add(edge, edge.weight);
-            edge = new Edge(_to, _from);
-            edges.Add(edge, edge.weight);
-        }
         public void addEdge(int from, int to, int weight)
         {
             Node _from = (Node)nodes[from];
@@ -130,48 +148,24 @@ namespace MST_EX1
 
             _from.adjacents.AddLast(_to);
             _to.adjacents.AddLast(_from);
-            Edge edge = new Edge(_from, _to, weight);
-            edges.Add(edge, edge.weight);
-            edge = new Edge(_to, _from, weight);
-            edges.Add(edge, edge.weight);
+
+            newEdges[from, to] = weight;
+            newEdges[to, from] = weight;
         }
 
-        public bool edgeExist(int from, int to, out Edge edge)
+        public bool edgeExist(int from, int to)
         {
-            Node _from = (Node)nodes[from];
-            Node _to = (Node)nodes[to];
-
-            foreach (Edge key in edges.Keys)
-            {
-                if (key.Equals(new Edge(_from, _to)))
-                {
-                    edge = key;
-                    return true;
-                }
-            }
-            edge = null;
-            return false;
+            return newEdges[from, to] != null;
         }
 
-        public int edgeWeight(int from, int to)
+        public Integer edgeWeight(int from, int to)
         {
-            Node _from = (Node)nodes[from];
-            Node _to = (Node)nodes[to];
-
-            int weight;
-            if (edges.TryGetValue(new Edge(_from, _to), out weight))
-                return weight;
-            return int.MinValue;
-
+            return newEdges[from, to];
         }
 
-        public int edgeWeight(Node from, Node to)
+        public Integer edgeWeight(Node from, Node to)
         {
-            int weight;
-            if (edges.TryGetValue(new Edge(from, to), out weight))
-                return weight;
-            return int.MinValue;
-
+            return edgeWeight(from.key, to.key);
         }
 
         public virtual void print()
@@ -187,11 +181,10 @@ namespace MST_EX1
                 Console.Write("{0,4}|", (i + 1));
                 for (int j = 0; j < 20; j++)
                 {
-                    Edge edge;
-                    if (edgeExist(i, j, out edge))
-                        Console.Write("{0,4}|", edge.weight);
-                    else if (edgeExist(j, i, out edge))
-                        Console.Write("{0,4}|", edge.weight);
+                    if (edgeExist(i, j))
+                        Console.Write("{0,4}|", edgeWeight(i, j));
+                    else if (edgeExist(j, i))
+                        Console.Write("{0,4}|", edgeWeight(i, j));
                     else
                         Console.Write("{0,4}|", " ");
                 }
@@ -210,7 +203,7 @@ namespace MST_EX1
             foreach (Node node in nodes)
             {
                 if (node.pi != null)
-                    mstEdges.Add(new Edge(node.pi, node));
+                    mstEdges.Add(new Edge(node.pi, node, G.edgeWeight(node.pi, node)));
             }
         }
 
