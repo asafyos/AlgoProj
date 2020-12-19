@@ -67,6 +67,13 @@ namespace MST_EX1
             weight = rndNum.Next(100);
         }
 
+        public Edge(Node from, Node to, int weight)
+        {
+            this.from = from;
+            this.to = to;
+            this.weight = weight;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is Edge)
@@ -111,6 +118,15 @@ namespace MST_EX1
 
             _from.adjacents.AddLast(_to);
             Edge edge = new Edge(_from, _to);
+            edges.Add(edge, edge.weight);
+        }
+        public void addEdge(int from, int to, int weight)
+        {
+            Node _from = (Node)nodes[from];
+            Node _to = (Node)nodes[to];
+
+            _from.adjacents.AddLast(_to);
+            Edge edge = new Edge(_from, _to, weight);
             edges.Add(edge, edge.weight);
         }
 
@@ -230,29 +246,79 @@ namespace MST_EX1
             {
                 g.addNode(i);
             }
-
-            for (int i = 0; i < numOfNodes; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    int to = -1;
-                    do
-                    {
-                        to = (new Random()).Next(numOfNodes);
-                    } while (i == to || g.edgeExist(i, to));
-                    g.addEdge(i, to);
-                }
-            }
-            for (int i = 40; i < numOfEdges; i++)
-            {
-                int from = -1, to = -1;
-                do
-                {
-                    from = (new Random()).Next(numOfNodes);
-                    to = (new Random()).Next(numOfNodes);
-                } while (from == to || g.edgeExist(from, to));
-                g.addEdge(from, to);
-            }
+            // from, to, weight
+            g.addEdge(0, 1, 1);
+            g.addEdge(0, 2, 1);
+            g.addEdge(0, 3, 1);
+            g.addEdge(0, 4, 1);
+            g.addEdge(1, 2, 1);
+            g.addEdge(1, 5, 1);
+            g.addEdge(1, 6, 1);
+            g.addEdge(2, 3, 1);
+            g.addEdge(2, 4, 1); 
+            g.addEdge(2, 6, 1);// 10
+            g.addEdge(2, 7, 1); 
+            g.addEdge(2, 8, 1);
+            g.addEdge(3, 4, 1);
+            g.addEdge(3, 8, 1);
+            g.addEdge(3, 9, 1);
+            g.addEdge(3, 10, 1);
+            g.addEdge(4, 10, 1);
+            g.addEdge(5, 6, 1);
+            g.addEdge(5, 11, 1);
+            g.addEdge(6, 7, 1); // 20
+            g.addEdge(6, 8, 1);
+            g.addEdge(6, 11, 1);
+            g.addEdge(6, 12, 1);
+            g.addEdge(7, 8, 1);
+            g.addEdge(7, 11, 1);
+            g.addEdge(7, 12, 1);
+            g.addEdge(7, 13, 1);
+            g.addEdge(8, 9, 1);
+            g.addEdge(8, 13, 1);
+            g.addEdge(8, 14, 1); // 30
+            g.addEdge(9, 10, 1);
+            g.addEdge(9, 14, 1);
+            g.addEdge(9, 15, 1);
+            g.addEdge(9, 18, 1);
+            g.addEdge(10, 15, 1);
+            g.addEdge(11, 12, 1);
+            g.addEdge(11, 16, 1);
+            g.addEdge(12, 13, 1);
+            g.addEdge(12, 16, 1);
+            g.addEdge(12, 17, 1); // 40
+            g.addEdge(13, 14, 1);
+            g.addEdge(13, 17, 1);
+            g.addEdge(13, 19, 1);
+            g.addEdge(14, 15, 1);
+            g.addEdge(14, 18, 1);
+            g.addEdge(14, 19, 1);
+            g.addEdge(15, 18, 1);
+            g.addEdge(16, 17, 1);
+            g.addEdge(17, 19, 1);
+            g.addEdge(18, 19, 1);//50
+            //for (int i = 0; i < numOfNodes; i++)
+            //{
+            //    for (int j = 0; j < 2; j++)
+            //    {
+            //        int to = -1;
+            //        do
+            //        {
+            //            to = (new Random()).Next(numOfNodes);
+            //        } while (i == to || g.edgeExist(i, to));
+            //        g.addEdge(i, to);
+            //    }
+            //}
+            //for (int i = 40; i < numOfEdges; i++)
+            //{
+            //    int from = -1, to = -1;
+            //    do
+            //    {
+            //        from = (new Random()).Next(numOfNodes);
+            //        to = (new Random()).Next(numOfNodes);
+            //    } while (from == to || g.edgeExist(from, to));
+            //    g.addEdge(from, to);
+            //}
 
             Console.WriteLine("Graph:");
             g.print();
