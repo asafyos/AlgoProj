@@ -154,7 +154,7 @@ namespace MST_EX1
         public void Heapify()
         {
             if (Count > 1)
-                for (int i = Count / 2; i < 1; i--)
+                for (int i = Count / 2; i >= 1; i--)
                 {
                     shiftDown(i);
                 }
@@ -170,6 +170,16 @@ namespace MST_EX1
             return false;
         }
 
+        public override string ToString()
+        {
+            string str = "Heap: |";
+            for (int i = 0; i < Count; i++)
+            {
+                str += string.Format("{0}|", data[i]);
+            }
+
+            return str;
+        }
     }
 
     class Node : IComparable<Node>
@@ -188,7 +198,7 @@ namespace MST_EX1
 
         public int CompareTo(Node other)
         {
-            return (d - key).CompareTo(other.d - other.key);
+            return d.CompareTo(other.d);
         }
 
         public override bool Equals(object obj)
@@ -203,6 +213,8 @@ namespace MST_EX1
 
         public override string ToString()
         {
+            return string.Format("{0,2}:({1,2},{2,2})", key + 1, d == int.MaxValue ? "" : d.ToString(), (pi != null ? pi.key.ToString() : ""));
+
             string output = (key + 1) + "";
             if (adjacents.Count != 0)
             {
@@ -226,14 +238,6 @@ namespace MST_EX1
         public Node to;
         public int weight;
 
-        public Edge(Node from, Node to)
-        {
-            this.from = from;
-            this.to = to;
-            Random rndNum = new Random();
-            weight = rndNum.Next(100);
-        }
-
         public Edge(Node from, Node to, int weight)
         {
             this.from = from;
@@ -254,7 +258,6 @@ namespace MST_EX1
         public override string ToString()
         {
             return string.Format("from: {0,2} to: {1,2}, weight {2}", (from.key + 1), (to.key + 1), weight);
-            //return "from: " + (from.key + 1) + " to: " + (to.key + 1) + " weight: " + weight;
         }
     }
 
@@ -287,7 +290,7 @@ namespace MST_EX1
             nodes.Add(new Node(key));
         }
 
-        public void addEdge(int from, int to, int weight)
+        public Edge addEdge(int from, int to, int weight)
         {
             Node _from = (Node)nodes[from];
             Node _to = (Node)nodes[to];
@@ -297,6 +300,8 @@ namespace MST_EX1
 
             newEdges[from, to] = weight;
             newEdges[to, from] = weight;
+
+            return new Edge(_from, _to, weight);
         }
 
         public bool edgeExist(int from, int to)
@@ -355,13 +360,16 @@ namespace MST_EX1
 
         public override void print()
         {
-            Console.WriteLine("Nodes:");
-            foreach( Node node in nodes)
+            if (false)
             {
-                //Console.WriteLine("node: " + node.key + " d: " + node.d + " pi: " + (node.pi != null ? node.pi.key : -1));
-                Console.WriteLine("node: {0,2} => d: {1,4}, pi: {2}", (node.key + 1), node.d, (node.pi != null ? node.pi.key : -1));
+                Console.WriteLine("Nodes:");
+                foreach (Node node in nodes)
+                {
+                    //Console.WriteLine("node: " + node.key + " d: " + node.d + " pi: " + (node.pi != null ? node.pi.key : -1));
+                    Console.WriteLine("node: {0}", node);
+                }
+                Console.WriteLine("\nEdges:");
             }
-            Console.WriteLine("\nEdges:");
             foreach (Edge edge in mstEdges)
             {
                 Console.WriteLine(edge.ToString());
@@ -374,31 +382,22 @@ namespace MST_EX1
 
         static MST Prim(Graph G)
         {
-            //SortedList<Node, Node> nodes = new SortedList<Node, Node>(); //  (G.nodes);
-
             foreach (Node node in G.nodes)
             {
                 node.d = int.MaxValue;
                 node.pi = null;
-                //nodes.Add(node, node);
             }
 
             MinHeap<Node> newNodes = new MinHeap<Node>((Node[])G.nodes.ToArray(typeof(Node)));
 
-            //nodes.Values[0].d = 0;
-            //nodes.Values[0].pi = null;
             newNodes.peek().d = 0;
 
-            //while (nodes.Count > 0)
             while (newNodes.Count > 0)
             {
-                //Node u = nodes.Values[0];
-                //nodes.RemoveAt(0);
                 Node u = newNodes.getMin();
                 foreach (Node v in u.adjacents)
                 {
                     int w = G.edgeWeight(u, v);
-                    //if (nodes.ContainsKey(v) && w < v.d)
                     if (newNodes.Contains(v) && w < v.d)
                     {
                         v.pi = u;
@@ -420,14 +419,15 @@ namespace MST_EX1
         static void Main(string[] args)
         {
             const int numOfNodes = 20;
-            const int numOfEdges = 50;
             Graph g = new Graph();
 
             //Create Graph
+            // Add 20 nodes
             for (int i = 0; i < numOfNodes; i++)
             {
                 g.addNode(i);
             }
+            // Add 50 edges
             // from, to, weight
             g.addEdge(0, 1, 1);
             g.addEdge(0, 2, 4);
@@ -479,52 +479,45 @@ namespace MST_EX1
             g.addEdge(16, 17, 45);
             g.addEdge(17, 19, 46);
             g.addEdge(18, 19, 47);//50
-            //for (int i = 0; i < numOfNodes; i++)
-            //{
-            //    for (int j = 0; j < 2; j++)
-            //    {
-            //        int to = -1;
-            //        do
-            //        {
-            //            to = (new Random()).Next(numOfNodes);
-            //        } while (i == to || g.edgeExist(i, to));
-            //        g.addEdge(i, to);
-            //    }
-            //}
-            //for (int i = 40; i < numOfEdges; i++)
-            //{
-            //    int from = -1, to = -1;
-            //    do
-            //    {
-            //        from = (new Random()).Next(numOfNodes);
-            //        to = (new Random()).Next(numOfNodes);
-            //    } while (from == to || g.edgeExist(from, to));
-            //    g.addEdge(from, to);
-            //}
 
-            Console.WriteLine("Graph:");
+            // Print the Graph
+            Console.WriteLine("\nGraph:");
             g.print();
 
-            Console.WriteLine("\nTree:");
+            // Calculate MST with Prim algorithem
             MST tree = Prim(g);
+
+            // Print the tree
+            Console.WriteLine("\nTree:");
             tree.print();
 
-            //// Insert new edge
-            //Edge e = new Edge();
+            // Insert new edge
+            Edge e = g.addEdge(2, 9, 30);
 
-            //g.print();
+            //Print the Graph
+            Console.WriteLine("\nGraph after new edge (non-changer):");
+            g.print();
 
-            //reevaluate(tree, e);
-            //tree.print();
+            //Calculate the new MST
+            reevaluate(tree, e);
 
-            //// Insert new edge
-            //e = new Edge();
+            //Print the tree
+            Console.WriteLine("\nTree after new edge (non-changer):");
+            tree.print();
 
-            //g.print();
+            // Insert new edge
+            e = g.addEdge(8, 19, 1);
 
-            //reevaluate(tree, e);
-            //tree.print();
+            //Print the Graph
+            Console.WriteLine("\nGraph after new edge (changer):");
+            g.print();
 
+            //Calculate the new MST
+            reevaluate(tree, e);
+
+            //Print the tree
+            Console.WriteLine("\nTree after new edge (changer):");
+            tree.print();
 
         }
     }
