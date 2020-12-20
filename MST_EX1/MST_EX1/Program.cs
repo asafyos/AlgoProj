@@ -182,23 +182,41 @@ namespace MST_EX1
         }
     }
 
-    class Node : IComparable<Node>
+    class Node : IComparable<Node>, ICloneable
     {
+        public enum COLOR
+        {
+            WHITE = 1, GRAY = 2, BLACK = 3
+        }
+
         public int key;
         public int d;
 
         public LinkedList<Node> adjacents;
         public Node pi;
 
+        public int dfsD;
+        public int dfsF;
+        public Node dfsPi;
+        public COLOR color;
+
         public Node(int key)
         {
             this.key = key;
             this.adjacents = new LinkedList<Node>();
+            dfs_init();
         }
 
         public int CompareTo(Node other)
         {
             return d.CompareTo(other.d);
+        }
+
+        public void dfs_init()
+        {
+            dfsD = dfsF = 0;
+            dfsPi = null;
+            color = COLOR.WHITE;
         }
 
         public override bool Equals(object obj)
@@ -230,6 +248,18 @@ namespace MST_EX1
             }
             return output;
         }
+
+        public object Clone()
+        {
+            Node newNode = new Node(this.key);
+            newNode.d = d;
+            newNode.pi = pi;
+            newNode.dfsD = dfsD;
+            newNode.dfsF = dfsF;
+            newNode.dfsPi = dfsPi;
+            newNode.color = color;
+            return newNode;
+        }
     }
 
     class Edge
@@ -257,7 +287,7 @@ namespace MST_EX1
 
         public override string ToString()
         {
-            return string.Format("from: {0,2} to: {1,2}, weight {2}", (from.key + 1), (to.key + 1), weight);
+            return string.Format("[{0,2},{1,2}]: weight {2}", (from.key + 1), (to.key + 1), weight);
         }
     }
 
@@ -304,6 +334,13 @@ namespace MST_EX1
             return new Edge(_from, _to, weight);
         }
 
+        public virtual void removeEdge(Edge edge)
+        {
+            edge.from.adjacents.Remove(edge.to);
+            edge.to.adjacents.Remove(edge.from);
+            newEdges[edge.from.key, edge.to.key] = newEdges[edge.to.key, edge.from.key] = null;
+        }
+
         public bool edgeExist(int from, int to)
         {
             return newEdges[from, to] != null;
@@ -319,7 +356,7 @@ namespace MST_EX1
             return edgeWeight(from.key, to.key);
         }
 
-        public virtual void print()
+        public virtual void print(bool graph = false)
         {
             Console.Write("    |");
             for (int i = 0; i < nodes.Count; i++)
@@ -347,7 +384,7 @@ namespace MST_EX1
 
     class MST : Graph
     {
-        ArrayList mstEdges = new ArrayList();
+        public ArrayList mstEdges = new ArrayList();
 
         public MST(Graph G) : base(G)
         {
@@ -358,27 +395,61 @@ namespace MST_EX1
             }
         }
 
-        public override void print()
+        public MST(MST tree) : base()
         {
-            if (false)
+            foreach (Node node in tree.nodes)
             {
-                Console.WriteLine("Nodes:");
-                foreach (Node node in nodes)
-                {
-                    //Console.WriteLine("node: " + node.key + " d: " + node.d + " pi: " + (node.pi != null ? node.pi.key : -1));
-                    Console.WriteLine("node: {0}", node);
-                }
-                Console.WriteLine("\nEdges:");
+                this.nodes.Add(node.Clone());
             }
-            foreach (Edge edge in mstEdges)
+
+            foreach (Edge edge in tree.mstEdges)
             {
-                Console.WriteLine(edge.ToString());
+                Edge e = addEdge(edge.from.key, edge.to.key, edge.weight);
+                this.mstEdges.Add(e);
+            }
+        }
+
+        public override void removeEdge(Edge edge)
+        {
+            base.removeEdge(edge);
+            foreach (Edge edg in mstEdges)
+            {
+                if (edg.Equals(edge))
+                {
+                    mstEdges.Remove(edg);
+                    break;
+                }
+            }
+        }
+
+        public override void print(bool graph = false)
+        {
+            if (graph)
+                base.print(graph);
+            else
+            {
+                if (false)
+                {
+                    Console.WriteLine("Nodes:");
+                    foreach (Node node in nodes)
+                    {
+                        //Console.WriteLine("node: " + node.key + " d: " + node.d + " pi: " + (node.pi != null ? node.pi.key : -1));
+                        Console.WriteLine("node: {0}", node);
+                    }
+                    Console.WriteLine("\nEdges:");
+                }
+                foreach (Edge edge in mstEdges)
+                {
+                    Console.WriteLine(edge.ToString());
+                }
             }
         }
     }
 
     class Program
     {
+
+        static int dfsTime;
 
         static MST Prim(Graph G)
         {
@@ -411,25 +482,69 @@ namespace MST_EX1
             return tree;
         }
 
+        static void DFS_VISIT(Node u)
+        {
+            u.color = Node.COLOR.GRAY;
+            u.dfsD = ++dfsTime;
+            foreach (Node v in u.adjacents)
+            {
+                if (v.color == Node.COLOR.GRAY && v.dfsD == 1 && u.dfsPi != v)
+                {
+                    v.dfsPi = u;
+                    return;
+                }
+                if (v.color == Node.COLOR.WHITE)
+                {
+                    v.dfsPi = u;
+                    DFS_VISIT(v);
+                }
+            }
+            u.color = Node.COLOR.BLACK;
+            u.dfsF = ++dfsTime;
+        }
+
         static MST reevaluate(MST tree, Edge newEdge)
         {
-            if (newEdge.from.d >= newEdge.to.d)
+            dfsTime = 0;
+            foreach (Node node in tree.nodes)
+                node.dfs_init();
+
+            // Calculate the circle in the MST with the new edge
+            // the circle will be in the dfsPi member of the tree nodes
+            DFS_VISIT(newEdge.from);
+
+            // Get the edge with the max weight
+            Node currNode = newEdge.from;
+            Node prevNode = newEdge.from.dfsPi;
+            int maxWeight = int.MinValue;
+            Edge maxEdge = null;
+            do
             {
-                if (newEdge.from.d > newEdge.weight)
+                int currWeight = tree.edgeWeight(currNode, prevNode);
+                if (currWeight > maxWeight)
                 {
-                    newEdge.from.pi = newEdge.to;
-                    newEdge.from.d = newEdge.weight;
+                    maxWeight = currWeight;
+                    maxEdge = new Edge(currNode, prevNode, maxWeight);
                 }
+
+                currNode = currNode.dfsPi;
+                prevNode = prevNode.dfsPi;
             }
-            else
+            while (prevNode != newEdge.from);
+
+            // Check if the new edgee is the max edge
+            if (newEdge.Equals(maxEdge))
             {
-                if (newEdge.to.d > newEdge.weight)
-                {
-                    newEdge.to.pi = newEdge.from;
-                    newEdge.to.d = newEdge.weight;
-                }
+                // Remove the new Edge
+                tree.removeEdge(newEdge);
+                return tree;
             }
-            return new MST(tree);
+
+            // Remove the old edge, and set the new edge
+            tree.mstEdges.Add(newEdge);
+            tree.removeEdge(maxEdge);
+
+            return tree;
         }
 
         static void Main(string[] args)
@@ -504,15 +619,17 @@ namespace MST_EX1
             MST tree = Prim(g);
 
             // Print the tree
-            Console.WriteLine("\nTree:");
+            Console.WriteLine("\nTree after Prim:");
             tree.print();
 
-            // Insert new edge
-            Edge e = g.addEdge(2, 9, 30);
+            // Clone the tree for new edge
+            tree = new MST(tree);
 
-            //Print the Graph
-            Console.WriteLine("\nGraph after new edge (non-changer):");
-            g.print();
+            // Insert new edge
+            Edge e = tree.addEdge(2, 9, 30);
+
+            // Print the new Edge
+            Console.WriteLine("\nnew edge: " + e + " (non-changer)");
 
             //Calculate the new MST
             tree = reevaluate(tree, e);
@@ -520,13 +637,12 @@ namespace MST_EX1
             //Print the tree
             Console.WriteLine("\nTree after new edge (non-changer):");
             tree.print();
-            
-            // Insert new edge
-            e = g.addEdge(8, 19, 1);
 
-            //Print the Graph
-            Console.WriteLine("\nGraph after new edge (changer):");
-            g.print();
+            // Insert new edge
+            e = tree.addEdge(8, 19, 1);
+
+            // Print the new edge
+            Console.WriteLine("\nnew edge: " + e + " (changer)");
 
             //Calculate the new MST
             tree = reevaluate(tree, e);
