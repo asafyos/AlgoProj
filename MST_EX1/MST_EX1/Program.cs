@@ -411,9 +411,25 @@ namespace MST_EX1
             return tree;
         }
 
-        static void reevaluate(MST tree, Edge newEdge)
+        static MST reevaluate(MST tree, Edge newEdge)
         {
-
+            if (newEdge.from.d >= newEdge.to.d)
+            {
+                if (newEdge.from.d > newEdge.weight)
+                {
+                    newEdge.from.pi = newEdge.to;
+                    newEdge.from.d = newEdge.weight;
+                }
+            }
+            else
+            {
+                if (newEdge.to.d > newEdge.weight)
+                {
+                    newEdge.to.pi = newEdge.from;
+                    newEdge.to.d = newEdge.weight;
+                }
+            }
+            return new MST(tree);
         }
 
         static void Main(string[] args)
@@ -499,12 +515,12 @@ namespace MST_EX1
             g.print();
 
             //Calculate the new MST
-            reevaluate(tree, e);
+            tree = reevaluate(tree, e);
 
             //Print the tree
             Console.WriteLine("\nTree after new edge (non-changer):");
             tree.print();
-
+            
             // Insert new edge
             e = g.addEdge(8, 19, 1);
 
@@ -513,11 +529,11 @@ namespace MST_EX1
             g.print();
 
             //Calculate the new MST
-            reevaluate(tree, e);
+            tree = reevaluate(tree, e);
 
             //Print the tree
             Console.WriteLine("\nTree after new edge (changer):");
-            tree.print();
+            tree.print(); //*/
 
         }
     }
