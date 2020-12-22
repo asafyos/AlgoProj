@@ -1,4 +1,6 @@
-﻿using System;
+﻿// לירן חסן 315306761
+// אסף יוסף 209018332
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -294,42 +296,50 @@ namespace MST_EX1
     class Graph
     {
         public ArrayList nodes;
-        //public Dictionary<Edge, int> edges = new Dictionary<Edge, int>();
-        public Integer[,] newEdges = new Integer[20, 20];
+        public Integer[,] edges;
 
         public Graph()
         {
             nodes = new ArrayList();
-            for (int i = 0; i < newEdges.GetLength(0); i++)
-            {
-                for (int j = 0; j < newEdges.GetLength(1); j++)
-                {
-                    newEdges[i, j] = null;
-                }
-            }
         }
 
         public Graph(Graph other)
         {
             this.nodes = other.nodes;
-            this.newEdges = other.newEdges;
+            this.edges = other.edges;
         }
 
         public void addNode(int key)
         {
             nodes.Add(new Node(key));
+
+            Integer[,] oldEdges = edges;
+            edges = new Integer[nodes.Count, nodes.Count];
+            int i, j;
+            for (i = 0; i < edges.GetLength(0); i++)
+            {
+                for (j = 0; j < edges.GetLength(1); j++)
+                {
+                    if (oldEdges == null || i >= oldEdges.GetLength(0) || j >= oldEdges.GetLength(1))
+                        edges[i, j] = null;
+                    else
+                        edges[i, j] = oldEdges[i, j];
+                }
+            }
         }
 
         public Edge addEdge(int from, int to, int weight)
         {
+            if (edges == null || from < 0 || from > nodes.Count || to < 0 || to > nodes.Count) return null;
+
             Node _from = (Node)nodes[from];
             Node _to = (Node)nodes[to];
 
             _from.adjacents.AddLast(_to);
             _to.adjacents.AddLast(_from);
 
-            newEdges[from, to] = weight;
-            newEdges[to, from] = weight;
+            edges[from, to] = weight;
+            edges[to, from] = weight;
 
             return new Edge(_from, _to, weight);
         }
@@ -338,17 +348,17 @@ namespace MST_EX1
         {
             edge.from.adjacents.Remove(edge.to);
             edge.to.adjacents.Remove(edge.from);
-            newEdges[edge.from.key, edge.to.key] = newEdges[edge.to.key, edge.from.key] = null;
+            edges[edge.from.key, edge.to.key] = edges[edge.to.key, edge.from.key] = null;
         }
 
         public bool edgeExist(int from, int to)
         {
-            return newEdges[from, to] != null;
+            return edges[from, to] != null;
         }
 
         public Integer edgeWeight(int from, int to)
         {
-            return newEdges[from, to];
+            return edges[from, to];
         }
 
         public Integer edgeWeight(Node from, Node to)
@@ -401,7 +411,7 @@ namespace MST_EX1
             {
                 this.nodes.Add(node.Clone());
             }
-
+            edges = new Integer[nodes.Count, nodes.Count];
             foreach (Edge edge in tree.mstEdges)
             {
                 Edge e = addEdge(edge.from.key, edge.to.key, edge.weight);
@@ -428,16 +438,6 @@ namespace MST_EX1
                 base.print(graph);
             else
             {
-                if (false)
-                {
-                    Console.WriteLine("Nodes:");
-                    foreach (Node node in nodes)
-                    {
-                        //Console.WriteLine("node: " + node.key + " d: " + node.d + " pi: " + (node.pi != null ? node.pi.key : -1));
-                        Console.WriteLine("node: {0}", node);
-                    }
-                    Console.WriteLine("\nEdges:");
-                }
                 foreach (Edge edge in mstEdges)
                 {
                     Console.WriteLine(edge.ToString());
