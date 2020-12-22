@@ -186,6 +186,9 @@ namespace MST_EX1
 
     class Node : IComparable<Node>, ICloneable
     {
+        /// <summary>
+        /// The avilable colors of the node
+        /// </summary>
         public enum COLOR
         {
             WHITE = 1, GRAY = 2, BLACK = 3
@@ -202,6 +205,10 @@ namespace MST_EX1
         public Node dfsPi;
         public COLOR color;
 
+        /// <summary>
+        /// Create a node
+        /// </summary>
+        /// <param name="key">the key of the node</param>
         public Node(int key)
         {
             this.key = key;
@@ -214,6 +221,10 @@ namespace MST_EX1
             return d.CompareTo(other.d);
         }
 
+        /// <summary>
+        /// Initialize the node for DFS
+        /// dfsD = dfsF = 0, dfsPi = null, color = WHITE
+        /// </summary>
         public void dfs_init()
         {
             dfsD = dfsF = 0;
@@ -270,6 +281,12 @@ namespace MST_EX1
         public Node to;
         public int weight;
 
+        /// <summary>
+        /// Create a new edge
+        /// </summary>
+        /// <param name="from">The start of the edge</param>
+        /// <param name="to">The end of the edge</param>
+        /// <param name="weight">The weight of the edge</param>
         public Edge(Node from, Node to, int weight)
         {
             this.from = from;
@@ -297,18 +314,33 @@ namespace MST_EX1
     {
         public ArrayList nodes;
         public Integer[,] edges;
+        private bool oriented;
 
-        public Graph()
+        /// <summary>
+        /// Set a new Graph
+        /// </summary>
+        /// <param name="oriented">true - the graph is oriented, 
+        /// false (default) - the graph is not oriented</param>
+        public Graph(bool oriented = false)
         {
             nodes = new ArrayList();
+            this.oriented = oriented;
         }
 
+        /// <summary>
+        /// Shallow copy of the graph
+        /// </summary>
+        /// <param name="other">The copied graph</param>
         public Graph(Graph other)
         {
             this.nodes = other.nodes;
             this.edges = other.edges;
         }
 
+        /// <summary>
+        /// Adding a node to the graph
+        /// </summary>
+        /// <param name="key">The node key</param>
         public void addNode(int key)
         {
             nodes.Add(new Node(key));
@@ -328,6 +360,13 @@ namespace MST_EX1
             }
         }
 
+        /// <summary>
+        /// Adding an edge to the graph
+        /// </summary>
+        /// <param name="from">The start node of the edge</param>
+        /// <param name="to">The end node of the edge</param>
+        /// <param name="weight">The weight of the edge</param>
+        /// <returns>The added edge</returns>
         public Edge addEdge(int from, int to, int weight)
         {
             if (edges == null || from < 0 || from > nodes.Count || to < 0 || to > nodes.Count) return null;
@@ -336,14 +375,21 @@ namespace MST_EX1
             Node _to = (Node)nodes[to];
 
             _from.adjacents.AddLast(_to);
-            _to.adjacents.AddLast(_from);
-
             edges[from, to] = weight;
-            edges[to, from] = weight;
+
+            if (!this.oriented)
+            {
+                _to.adjacents.AddLast(_from);
+                edges[to, from] = weight;
+            }
 
             return new Edge(_from, _to, weight);
         }
 
+        /// <summary>
+        /// Remove an edge for the graph
+        /// </summary>
+        /// <param name="edge">The edge to remove</param>
         public virtual void removeEdge(Edge edge)
         {
             edge.from.adjacents.Remove(edge.to);
@@ -351,21 +397,44 @@ namespace MST_EX1
             edges[edge.from.key, edge.to.key] = edges[edge.to.key, edge.from.key] = null;
         }
 
+        /// <summary>
+        /// Check if an edge is exist
+        /// </summary>
+        /// <param name="from">The start of the edge</param>
+        /// <param name="to">The end of the edge</param>
+        /// <returns>true - the edge exist in the graph
+        /// false - the edge doesn't exist in the graph</returns>
         public bool edgeExist(int from, int to)
         {
             return edges[from, to] != null;
         }
 
+        /// <summary>
+        /// Get the edge weight (Nullable)
+        /// </summary>
+        /// <param name="from">The start of the edge</param>
+        /// <param name="to">The end of the edge</param>
+        /// <returns>The edge weight</returns>
         public Integer edgeWeight(int from, int to)
         {
             return edges[from, to];
         }
 
+        /// <summary>
+        /// Get the edge weight (Nullable)
+        /// </summary>
+        /// <param name="from">The start node of the edge</param>
+        /// <param name="to">The end node of the edge</param>
+        /// <returns>The edge weight</returns>
         public Integer edgeWeight(Node from, Node to)
         {
             return edgeWeight(from.key, to.key);
         }
 
+        /// <summary>
+        /// Print the graph in adjacent matrix view
+        /// </summary>
+        /// <param name="graph"></param>
         public virtual void print(bool graph = false)
         {
             Console.Write("    |");
@@ -396,6 +465,11 @@ namespace MST_EX1
     {
         public ArrayList mstEdges = new ArrayList();
 
+        /// <summary>
+        /// Building a MST based on Graph 
+        /// The MST is in the mstEdges list
+        /// </summary>
+        /// <param name="G">A graph with d and pi values</param>
         public MST(Graph G) : base(G)
         {
             foreach (Node node in nodes)
@@ -405,6 +479,10 @@ namespace MST_EX1
             }
         }
 
+        /// <summary>
+        /// Copy a MST the graph full edges, only with MST edges and nodes
+        /// </summary>
+        /// <param name="tree">The copied MST</param>
         public MST(MST tree) : base()
         {
             foreach (Node node in tree.nodes)
@@ -419,6 +497,10 @@ namespace MST_EX1
             }
         }
 
+        /// <summary>
+        /// Remove an edge from the MST
+        /// </summary>
+        /// <param name="edge">The edge in the MST to be removed</param>
         public override void removeEdge(Edge edge)
         {
             base.removeEdge(edge);
@@ -432,6 +514,11 @@ namespace MST_EX1
             }
         }
 
+        /// <summary>
+        /// Print the MST / Graph
+        /// </summary>
+        /// <param name="graph">If true, an adjacent matrix is being printed
+        /// otherwise, the MST edges is printed</param>
         public override void print(bool graph = false)
         {
             if (graph)
@@ -670,7 +757,7 @@ namespace MST_EX1
 
             //Print the tree
             Console.WriteLine("\nTree after new edge (changer):");
-            tree.print(); //*/
+            tree.print();
 
         }
     }
