@@ -451,45 +451,66 @@ namespace MST_EX1
 
         static int dfsTime;
 
-        static MST Prim(Graph G)
+        static MST Prim(Graph G, Node s)
         {
+            // Initialize all of the nodes
             foreach (Node node in G.nodes)
             {
                 node.d = int.MaxValue;
                 node.pi = null;
             }
 
+            // Insert nodes to priority queue (based on d values)
             MinHeap<Node> newNodes = new MinHeap<Node>((Node[])G.nodes.ToArray(typeof(Node)));
 
-            newNodes.peek().d = 0;
+            // Set the default first node as the start 
+            s.d = 0;
+            newNodes.Heapify();
+            //newNodes.peek().d = 0;
 
+            // For all nodes in queue
             while (newNodes.Count > 0)
             {
+                // Getting the minimum d nodes
                 Node u = newNodes.getMin();
+
+                // For all adjacents nodes
                 foreach (Node v in u.adjacents)
                 {
+                    // Getting the weight of the edge
                     int w = G.edgeWeight(u, v);
+
+                    // If the node is in the queue, and its value greater then the weight , set the new d and pi
                     if (newNodes.Contains(v) && w < v.d)
                     {
                         v.pi = u;
                         v.d = w;
                     }
                 }
+
+                // Re-arange the queue
                 newNodes.Heapify();
             }
 
+            // Build the return MST (not part of the PRIM itself)
+            // Making the edge list based on pi and d values
             MST tree = new MST(G);
             return tree;
         }
 
         static void DFS_VISIT(Node u)
         {
+            // DFS-visit untile we find the circle made from the new edge
+
             u.color = Node.COLOR.GRAY;
             u.dfsD = ++dfsTime;
             foreach (Node v in u.adjacents)
             {
+                // Our addition - if the start node had been found, we completed the circle
+                //   (Not including re-referance from the start of the circle (when v is the start of circle, but also the finder of u)
                 if (v.color == Node.COLOR.GRAY && v.dfsD == 1 && u.dfsPi != v)
                 {
+                    // The circle is complete, no need for more iterations
                     v.dfsPi = u;
                     return;
                 }
@@ -616,7 +637,7 @@ namespace MST_EX1
             g.print();
 
             // Calculate MST with Prim algorithem
-            MST tree = Prim(g);
+            MST tree = Prim(g, (Node)g.nodes[0]);
 
             // Print the tree
             Console.WriteLine("\nTree after Prim:");
